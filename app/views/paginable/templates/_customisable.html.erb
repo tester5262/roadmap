@@ -15,7 +15,20 @@
       <% customization = customizations.find{ |customization| customization.customization_of == template.family_id } %>
       <tr id="<%= dom_id(template) %>">
         <td>
-          <%= "#{template.is_default ? '* ' : ''}#{template.title}" %>
+          <% if customization.present? %>
+            <% if customization.created_at < template.created_at %>
+                <%= link_to "#{template.is_default ? '* ' : ''}#{template.title}",
+                    org_admin_template_customization_transfers_path(customization.id),
+                    data: { method: 'post' }
+                %>
+            <% else %>
+              <%= link_to "#{template.is_default ? '* ' : ''}#{template.title}", org_admin_template_path(id: customization.id) %>
+            <% end %>
+          <% else %>
+            <%= link_to "#{template.is_default ? '* ' : ''}#{template.title} ",
+                org_admin_template_customizations_path(template.id),
+                'data-method': 'post' %>
+          <% end %>
         </td>
         <td>
           <%= template.org.name %>
