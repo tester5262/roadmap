@@ -5,9 +5,9 @@
 **Copyright: Digital Curation Centre and California Digital Library
 -->
 <div class="row">
-  <div class="col-md-8">
+  <div class="col-md-10">
     <div class="row">
-      <div class="col-md-12">
+      <div class="col-md-8">
         <% q_format = question.question_format %>
         <dl class="dl-horizontal">
           <dt><%= _('Question number')%></dt>
@@ -58,7 +58,76 @@
           <% end %>
         </dl>
       </div>
+      
+      <div class="col-md-4">
+        <% has_org_themed_guidance = false %>
+        <% themes_q = question.themes %>
+        <% if !themes_q.nil? %>
+          <div class="accordion" id="<%= question.id %>-guidance">
+            <% ggs = GuidanceGroup.where(org_id: current_user.org.id) %>
+            <h4><%= _("Themed Guidance") %></h4>
+            
+            <% if ggs.length > 0 %>
+              <%# To determine if any themes associated with question exist. %>
+              <% ggs.each do |guidance_group| %>
+                <% themes_q.each do |theme| %>
+                  <% theme_guidances = theme.guidances.where(
+                    guidances: { guidance_group_id: guidance_group.id }
+                    ) %>
+                  <% if theme_guidances.length > 0 %>
+                    <% has_org_themed_guidance = true %>
+                    <p><%= _("Click the links below to view organisational guidance
+                        related to the themes associated with this question.") %></p>
+                      <% break %>
+                  <% end %>
+                <% end %>
+              <% end %>
+              
+              <% if has_org_themed_guidance %>
+                <% ggs.each do |guidance_group| %>
+                  <% themes_q.each do |theme| %>
+                    <% theme_guidances = theme.guidances.where(
+                      guidances: { guidance_group_id: guidance_group.id }
+                      ) %>
+                    <% if theme_guidances.length > 0 %>
+                      <% theme_guidances.each do |guidance| %>
+                        <div class="accordion-group">
+                          <div class="accordion-heading">
+                            <a class="accordion-guidance-link" data-toggle="collapse"
+                               data-parent="#<%= question.id %>-guidance"
+                               href="#collapse-guidance-<%= guidance.id%>-<%= question.id %>">
+                              <div class="accordion_heading_text">
+                                <span class="fa fa-plus"> </span>
+                                 <%= theme.title %>
+                                 <% if ggs.length > 1 %>
+                                   &nbsp;(<%= guidance_group.name %>)
+                                 <% end %>
+                              </div>
+                            </a>
+                          </div>
+                          <div id="collapse-guidance-<%= guidance.id%>-<%= question.id %>"
+                               class="guidance-accordion-body collapse">
+                          <div class="accordion-inner"><br><%= sanitize guidance.text %></div>
+                        </div>
+                      </div>
+                    <% end %>
+                   <% end %>
+                  <% end %>
+                <% end %>
+              <% end %>
+            <% end %>
+          <% end %>
+        </div>
+        <% if has_org_themed_guidance %>
+          <br>
+          <p><em><%= _("Note: New plans will automatically display this guidance.
+            Users then have the ability to hide/display the guidance when editing their plan.") %></em></p>
+          <% else %>
+            <p><%= _("There is no organisational guidance related to the themes associated with this question.") %><p>
+        <% end %>
+      </div>
     </div>
+    
     <div class="row">
       <div class="col-md-12">
         <% if template.latest? %>
